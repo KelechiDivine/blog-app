@@ -1,6 +1,7 @@
 package com.kelechi.kelechi.data.repository;
 
 import com.kelechi.kelechi.data.models.Author;
+import com.kelechi.kelechi.data.models.Comment;
 import com.kelechi.kelechi.data.models.Post;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,13 +10,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.jdbc.Sql;
-import org.springframework.transaction.annotation.Transactional;
+
 
 
 import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@Rollback(value = false)
 @Slf4j
 @Sql(scripts = {"classpath:db/insert.sql"})
 
@@ -98,14 +100,18 @@ class PostRepositoryTest {
 		List<Post> existingPosts = postRepository.findAll();
 		assertThat(existingPosts).isNotNull();
 		assertThat(existingPosts).hasSize(5);
+		
+//		log.info("Post author -->", existingPosts.get(1).getAuthor());
 	}
 	
 	@Test
-	@Transactional
-	@Rollback(value = false)
-	public void deletePosByIdt(){
+//	@Transactional
+//	@Rollback(value = false)
+	public void deletePostById(){
 		Post savedPost = postRepository.findById(41).orElse(null);
 		assertThat(savedPost).isNotNull();
+		log.info("Post fetched from the database --> {}", savedPost.getAuthor());
+		
 		log.info("Post fetched from the database --> {}", savedPost);
 		
 		postRepository.deleteById(savedPost.getId());
@@ -113,6 +119,69 @@ class PostRepositoryTest {
 		Post deletePost = postRepository.findById(savedPost.getId()).orElse(null);
 		assertThat(deletePost).isNull();
 		
+	}
+	
+	@Test
+	public void updatedSavedPostTest(){
+		
+		Post savedPost = postRepository.findById(41).orElse(null);
+		assertThat(savedPost).isNotNull();
+		assertThat(savedPost.getTitle()).isEqualTo("Title post1");
+		
+		savedPost.setTitle("Pentax title");
+		
+		postRepository.save(savedPost);
+		
+		Post updatePost= postRepository.findById(savedPost.getId()).orElse(null);
+		assertThat(updatePost).isNotNull();
+		
+		assertThat(updatePost.getTitle()).isEqualTo("Pentax title");
+	}
+	
+	@Test
+	public void updatePostAuthor(){
+		
+		
+		Post savedAuthor = postRepository.findById(41).orElse(null);
+		assertThat(savedAuthor).isNotNull();
+		assertThat(savedAuthor.getAuthor()).isNull();
+		
+		log.info("Saved post objects --> {}", savedAuthor);
+		
+		
+		Author author = new Author();
+		author.setFirstname("kelechi");
+		author.setLastname("okoroafor");
+		author.setPhoneNumber("08082167764");
+		author.setProfession("civil engineer");
+		author.setEmail("okoroaforkelechi123@gmail.com");
+		
+		savedAuthor.setAuthor(author);
+		postRepository.save(savedAuthor);
+		
+		Post updatePost = postRepository.findById(savedAuthor.getId()).orElse(null);
+		assertThat(updatePost).isNotNull();
+		assertThat(updatePost.getAuthor()).isNotNull();
+		assertThat(updatePost.getAuthor().getLastname()).isEqualTo("okoroafor");
+		
+	}
+	
+	@Test
+	public void addCommentToAnAlreadyExistingPost(){
+		Post savedPost = postRepository.findById(41).orElse(null);
+		assertThat(savedPost).isNotNull();
+		assertThat(savedPost.getComments()).hasSize(0);
+		
+		Comment comment1 = new Comment("Billy goat", "Really insightful post");
+		Comment comment2 = new Comment("Peter Bread", "Nice one!");
+		
+		savedPost.addComment(comment1, comment2);
+		postRepository.save(savedPost);
+
+		Post commentedPost = postRepository.findById(savedPost.getId()).orElse(null);
+		assertThat(commentedPost).isNotNull();
+		assertThat(commentedPost.getComments()).hasSize(2);
+		log.info("post fufiled --> {}", commentedPost);
 	}
 	
 }
