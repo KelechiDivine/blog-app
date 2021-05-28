@@ -7,7 +7,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.List;
@@ -28,7 +30,7 @@ class PostRepositoryTest {
 	
 	
 	@Test
-	void savePostToDBTest() {
+	public void savePostToDBTest() {
 		Post blogPost = new Post();
 		blogPost.setTitle("what is Fintech?");
 		blogPost.setContent("Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nulla erat, luctus non mattis sit amet, finibus quis purus. Vestibulum convallis " +
@@ -43,7 +45,7 @@ class PostRepositoryTest {
 	}
 	
 	@Test
-	void throwExceptionWhenSavingPostWithDuplicateTitle() {
+	public void throwExceptionWhenSavingPostWithDuplicateTitle() {
 		Post blogPost = new Post();
 		blogPost.setTitle("what is Fintech?");
 		blogPost.setContent("Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nulla erat, luctus non mattis sit amet, finibus quis purus. Vestibulum convallis " +
@@ -65,7 +67,7 @@ class PostRepositoryTest {
 	}
 	
 	@Test
-	void whenPostIsSaved_thenSavedAuthor(){
+	public void whenPostIsSaved_thenSavedAuthor(){
 		Post blogPost = new Post();
 		blogPost.setTitle("what is Fintech?");
 		blogPost.setContent("Lorem ipsum dolor sit amet, consectetur adipiscing elit. In nulla erat, luctus non mattis sit amet, finibus quis purus. Vestibulum convallis " +
@@ -77,9 +79,9 @@ class PostRepositoryTest {
 		log.info("Created a blog post --> {}", blogPost);
 		
 		Author author = new Author();
-		author.setFirstname("John");
-		author.setLastname("Wick");
-		author.setEmail("John@gmail.com");
+		author.setFirstname("kelechi");
+		author.setLastname("okoroafor");
+		author.setEmail("okoroaforkelechi.com");
 		author.setPhoneNumber("08082167764");
 		
 		blogPost.setAuthor(author);
@@ -91,11 +93,26 @@ class PostRepositoryTest {
 	}
 	
 	@Test
-	void findAllPostInTheTest(){
+	public void findAllPostInTheTest(){
 		
 		List<Post> existingPosts = postRepository.findAll();
 		assertThat(existingPosts).isNotNull();
 		assertThat(existingPosts).hasSize(5);
+	}
+	
+	@Test
+	@Transactional
+	@Rollback(value = false)
+	public void deletePosByIdt(){
+		Post savedPost = postRepository.findById(41).orElse(null);
+		assertThat(savedPost).isNotNull();
+		log.info("Post fetched from the database --> {}", savedPost);
+		
+		postRepository.deleteById(savedPost.getId());
+		
+		Post deletePost = postRepository.findById(savedPost.getId()).orElse(null);
+		assertThat(deletePost).isNull();
+		
 	}
 	
 }
