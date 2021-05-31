@@ -164,6 +164,8 @@ class PostRepositoryTest {
 		assertThat(updatePost.getAuthor()).isNotNull();
 		assertThat(updatePost.getAuthor().getLastname()).isEqualTo("okoroafor");
 		
+		
+		
 	}
 	
 	@Test
